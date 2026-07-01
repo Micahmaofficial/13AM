@@ -7,23 +7,19 @@
 
   <style>
     :root {
-      --bg: #fffaea;
+      --bg: #fffefa;
       --text: #111111;
       --muted: rgba(17, 17, 17, 0.52);
       --line: rgba(17, 17, 17, 0.14);
 
-      --logo-face: #fffaea;
+      --logo-face: #fffefa;
       --logo-stroke: rgba(225, 219, 201, 0.5);
       --logo-side-1: rgba(222, 216, 198, 0.38);
       --logo-side-2: rgba(198, 193, 178, 0.20);
-      --logo-cast: rgba(142, 137, 122, 0.10);
 
-      --btn-hover-bg: #b60404f0;
+      --btn-hover-bg: #ac0a0a;
       --btn-hover-text: #ffffff;
-      --btn-hover-border: #b60404f0;
-
-      /* NEENOSLEEP hover 同步 button 的红色 */
-      --brand-hover-red: #b60404f0;
+      --btn-hover-border: #ac0a0a;
     }
 
     * { box-sizing: border-box; }
@@ -45,17 +41,14 @@
       background: var(--bg);
     }
 
+    /* 字体放到画面正中央 */
     .topbar {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      inset: 0;
       z-index: 50;
-      height: 124px;
       display: flex;
-      justify-content: flex-end;
-      align-items: flex-start;
-      padding: clamp(22px, 3.3vw, 42px) clamp(20px, 5vw, 76px) 0;
+      justify-content: center;
+      align-items: center;
       pointer-events: none;
     }
 
@@ -66,13 +59,13 @@
       text-decoration: none;
       text-transform: uppercase;
       font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-      font-size: clamp(24px, 4.8vw, 72px);
+      font-size: clamp(30px, 7vw, 110px);
       font-weight: 900;
-      line-height: 0.82;
+      line-height: 0.9;
       letter-spacing: 0.015em;
       white-space: nowrap;
       transform: perspective(960px) rotateX(0.8deg) rotateY(-3.5deg);
-      transform-origin: right top;
+      transform-origin: center center;
       isolation: isolate;
       opacity: 1;
       transition:
@@ -82,8 +75,7 @@
 
     .brand-face,
     .brand-depth,
-    .brand-depth-soft,
-    .brand-cast {
+    .brand-depth-soft {
       display: block;
       transition:
         opacity 760ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -94,10 +86,9 @@
         -webkit-text-stroke-color 760ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* 默认：几乎融入背景 */
     .brand-face {
       position: relative;
-      z-index: 5;
+      z-index: 3;
       color: var(--bg);
       -webkit-text-stroke: 1px rgba(0, 0, 0, 0);
       text-shadow: none;
@@ -105,59 +96,23 @@
       filter: blur(0.2px);
     }
 
+    /* 仅保留一层浅灰色字体后阴影 */
     .brand-depth {
       position: absolute;
       inset: 0;
-      z-index: 4;
-      color: var(--bg);
+      z-index: 2;
+      color: rgba(170, 170, 170, 0.45);
       transform: translate(0px, 0px);
       text-shadow: none;
+      opacity: 0;
       clip-path: polygon(0 0, 100% 0, 100% 100%, 3% 100%);
-      opacity: 0;
     }
 
+    /* 第二层大阴影禁用 */
     .brand-depth-soft {
-      position: absolute;
-      inset: 0;
-      z-index: 3;
-      color: var(--bg);
-      transform: translate(0px, 0px);
-      opacity: 0;
-      filter: blur(0.2px);
-      clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%);
+      display: none;
     }
 
-    .brand-cast {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      color: var(--bg);
-      transform: translate(0px, 0px) skewX(0deg);
-      filter: blur(0px);
-      opacity: 0;
-      clip-path: polygon(6% 0, 100% 0, 100% 100%, 0 100%);
-    }
-
-    .brand-3d::before {
-      content: "";
-      position: absolute;
-      left: 6%;
-      right: -10%;
-      bottom: -14%;
-      height: 18%;
-      z-index: 0;
-      background: transparent;
-      transform: skewX(0deg);
-      filter: blur(0px);
-      pointer-events: none;
-      transition:
-        background 760ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-        filter 900ms cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 760ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* hover / focus：柔和凸显 */
     .brand-3d:hover,
     .brand-3d:focus-visible {
       transform: perspective(960px) rotateX(0.8deg) rotateY(-3.5deg) translateY(-1px);
@@ -166,51 +121,19 @@
 
     .brand-3d:hover .brand-face,
     .brand-3d:focus-visible .brand-face {
-      color: var(--brand-hover-red);
-      -webkit-text-stroke: 1px rgba(122, 0, 25, 0.28);
-      text-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.22),
-        0 -1px 0 rgba(70, 0, 12, 0.20);
+      color: #fffefa;
+      -webkit-text-stroke: 1px var(--logo-stroke);
+      text-shadow: none;
       opacity: 1;
       filter: none;
     }
 
     .brand-3d:hover .brand-depth,
     .brand-3d:focus-visible .brand-depth {
-      color: rgba(122, 0, 25, 0.34);
+      color: rgba(160, 160, 160, 0.55);
       transform: translate(2px, 2px);
-      text-shadow:
-        1px 1px 0 rgba(122, 0, 25, 0.22),
-        2px 2px 0 rgba(122, 0, 25, 0.14);
+      text-shadow: none;
       opacity: 1;
-    }
-
-    .brand-3d:hover .brand-depth-soft,
-    .brand-3d:focus-visible .brand-depth-soft {
-      color: rgba(122, 0, 25, 0.20);
-      transform: translate(4px, 4px);
-      opacity: 0.30;
-      filter: blur(0.5px);
-    }
-
-    .brand-3d:hover .brand-cast,
-    .brand-3d:focus-visible .brand-cast {
-      color: rgba(122, 0, 25, 0.22);
-      transform: translate(7px, 8px) skewX(8deg);
-      filter: blur(1.3px);
-      opacity: 0.40;
-    }
-
-    .brand-3d:hover::before,
-    .brand-3d:focus-visible::before {
-      background: linear-gradient(
-        105deg,
-        rgba(122, 0, 25, 0.10),
-        rgba(122, 0, 25, 0.05) 52%,
-        rgba(122, 0, 25, 0)
-      );
-      transform: skewX(12deg);
-      filter: blur(8px);
     }
 
     main { min-height: 100vh; }
@@ -256,19 +179,6 @@
       display: none;
     }
 
-    .artwork-slot img,
-    .logo-slot img,
-    .artwork-slot video,
-    .logo-slot video,
-    .artwork-slot canvas,
-    .logo-slot canvas,
-    .artwork-slot svg,
-    .logo-slot svg {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
     .home-nav {
       position: fixed;
       left: clamp(20px, 5vw, 76px);
@@ -284,11 +194,11 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 0 17px;
-      background: rgba(255, 250, 234, 0.72);
+      background: rgba(249, 248, 245, 0.72);
       color: var(--text);
       cursor: pointer;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 1;
       backdrop-filter: blur(14px);
       transition:
@@ -306,7 +216,8 @@
     }
 
     .nav-button:focus-visible,
-    .brand-3d:focus-visible {
+    .brand-3d:focus-visible,
+    .enter-btn:focus-visible {
       outline: 2px solid #ffffff;
       outline-offset: 2px;
     }
@@ -369,50 +280,109 @@
       gap: 10px;
     }
 
+    /* ===== 加载页动画（新增，不改首页原动效与颜色） ===== */
+    .intro-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      overflow: hidden;
+      transition: opacity 460ms ease, visibility 460ms ease;
+    }
+    .intro-overlay.is-hidden{
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .enter-btn{
+      position: relative;
+      z-index: 2;
+      min-height: 48px;
+      padding: 0 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.24);
+      background: rgba(255,255,255,.92);
+      color: #111;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    .enter-btn:hover{
+      transform: translateY(-1px);
+      background: #ac0a0a;
+      color: #fff;
+      border-color: #ac0a0a;
+    }
+    .enter-btn.is-hide{
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+    }
+
+    .vortex-wrap{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+
+    .vortex-layer{
+      position: absolute;
+      width: min(42vw, 540px);
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      transform-origin: 50% 50%;
+      opacity: 0;
+      will-change: transform, opacity, filter;
+      mix-blend-mode: multiply;
+    }
+
+    .vortex-wrap.run .layer-1{ animation: spin1 1100ms linear forwards; opacity: .95; }
+    .vortex-wrap.run .layer-2{ animation: spin2 1100ms linear forwards; opacity: .42; }
+    .vortex-wrap.run .layer-3{ animation: spin3 1100ms linear forwards; opacity: .24; }
+
+    @keyframes spin1{
+      from{ transform: rotate(0deg) scale(1); filter: blur(0); }
+      to  { transform: rotate(1440deg) scale(1.02); filter: blur(.4px); }
+    }
+    @keyframes spin2{
+      from{ transform: rotate(0deg) scale(1.04); filter: blur(.1px); }
+      to  { transform: rotate(1560deg) scale(.98); filter: blur(1.2px); }
+    }
+    @keyframes spin3{
+      from{ transform: rotate(0deg) scale(1.1); filter: blur(.2px); }
+      to  { transform: rotate(1680deg) scale(.92); filter: blur(2px); }
+    }
+
+    .vortex-wrap.suck .vortex-layer{
+      animation: suckIn 820ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    @keyframes suckIn{
+      0%   { transform: scale(1); opacity: 1; filter: blur(0); }
+      65%  { transform: scale(.25); opacity: .95; filter: blur(1.5px); }
+      100% { transform: scale(.02); opacity: 0; filter: blur(4px); }
+    }
+
     @media (hover: none) {
-      /* 触屏无 hover：默认可见 */
       .brand-face {
-        color: var(--brand-hover-red);
-        -webkit-text-stroke: 1px rgba(122, 0, 25, 0.28);
-        text-shadow:
-          0 1px 0 rgba(255, 255, 255, 0.22),
-          0 -1px 0 rgba(70, 0, 12, 0.20);
+        color: #fffaea;
+        -webkit-text-stroke: 1px var(--logo-stroke);
+        text-shadow: none;
         opacity: 1;
         filter: none;
       }
 
       .brand-depth {
-        color: rgba(122, 0, 25, 0.34);
+        color: rgba(160, 160, 160, 0.55);
         transform: translate(2px, 2px);
-        text-shadow:
-          1px 1px 0 rgba(122, 0, 25, 0.22),
-          2px 2px 0 rgba(122, 0, 25, 0.14);
+        text-shadow: none;
         opacity: 1;
-      }
-
-      .brand-depth-soft {
-        color: rgba(122, 0, 25, 0.20);
-        transform: translate(4px, 4px);
-        opacity: 0.30;
-        filter: blur(0.5px);
-      }
-
-      .brand-cast {
-        color: rgba(122, 0, 25, 0.22);
-        transform: translate(7px, 8px) skewX(8deg);
-        filter: blur(1.3px);
-        opacity: 0.40;
-      }
-
-      .brand-3d::before {
-        background: linear-gradient(
-          105deg,
-          rgba(122, 0, 25, 0.10),
-          rgba(122, 0, 25, 0.05) 52%,
-          rgba(122, 0, 25, 0)
-        );
-        transform: skewX(12deg);
-        filter: blur(8px);
       }
 
       .nav-button:hover {
@@ -427,23 +397,19 @@
       .brand-3d,
       .brand-face,
       .brand-depth,
-      .brand-depth-soft,
-      .brand-cast,
-      .brand-3d::before,
-      .nav-button {
+      .nav-button,
+      .intro-overlay,
+      .enter-btn,
+      .vortex-layer {
         transition: none !important;
+        animation: none !important;
       }
     }
 
     @media (max-width: 780px) {
-      .topbar {
-        height: 88px;
-        padding: 22px 20px 0;
-      }
-
       .brand-3d {
         max-width: calc(100vw - 40px);
-        font-size: clamp(20px, 7.4vw, 38px);
+        font-size: clamp(24px, 9vw, 48px);
         letter-spacing: 0.015em;
         transform: perspective(700px) rotateX(0.8deg) rotateY(-3deg);
       }
@@ -471,16 +437,29 @@
       .content-tile {
         min-height: 180px;
       }
+
+      .vortex-layer{
+        width: min(66vw, 360px);
+      }
     }
   </style>
 </head>
 
 <body>
+  <!-- 加载页 -->
+  <div id="introOverlay" class="intro-overlay" aria-label="Loading intro">
+    <div id="vortexWrap" class="vortex-wrap" aria-hidden="true">
+      <!-- 把这里改成你的 logo 路径 -->
+      <img class="vortex-layer layer-1" src="./Pogo.png" alt="">
+      <img class="vortex-layer layer-2" src="./Pogo.png" alt="">
+      <img class="vortex-layer layer-3" src="./Pogo.png" alt="">
+    </div>
+    <button id="enterBtn" class="enter-btn" type="button">ENTER</button>
+  </div>
+
   <div class="site">
     <header class="topbar">
       <a class="brand-3d" href="#home" aria-label="NEENOSLEEP home">
-        <span class="brand-cast" aria-hidden="true">NEENOSLEEP</span>
-        <span class="brand-depth-soft" aria-hidden="true">NEENOSLEEP</span>
         <span class="brand-depth" aria-hidden="true">NEENOSLEEP</span>
         <span class="brand-face">NEENOSLEEP</span>
       </a>
@@ -586,6 +565,31 @@
       });
 
       go(window.location.hash.replace("#", "") || "home", false);
+
+      /* ===== 加载页动画控制（新增） ===== */
+      const intro = document.getElementById("introOverlay");
+      const enterBtn = document.getElementById("enterBtn");
+      const vortex = document.getElementById("vortexWrap");
+
+      let started = false;
+
+      if (enterBtn && intro && vortex) {
+        enterBtn.addEventListener("click", () => {
+          if (started) return;
+          started = true;
+
+          enterBtn.classList.add("is-hide");
+          vortex.classList.add("run"); // 快速顺时针旋转
+
+          setTimeout(() => {
+            vortex.classList.add("suck"); // 吸入
+          }, 1100);
+
+          setTimeout(() => {
+            intro.classList.add("is-hidden"); // 露出原首页（原动效和颜色不改）
+          }, 1950);
+        });
+      }
     })();
   </script>
 </body>
