@@ -3,593 +3,642 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEENOSLEEP</title>
-
+  <title>B4M</title>
   <style>
     :root {
-      --bg: #fffefa;
-      --text: #111111;
-      --muted: rgba(17, 17, 17, 0.52);
-      --line: rgba(17, 17, 17, 0.14);
-
-      --logo-face: #fffefa;
-      --logo-stroke: rgba(225, 219, 201, 0.5);
-      --logo-side-1: rgba(222, 216, 198, 0.38);
-      --logo-side-2: rgba(198, 193, 178, 0.20);
-
-      --btn-hover-bg: #ac0a0a;
-      --btn-hover-text: #ffffff;
-      --btn-hover-border: #ac0a0a;
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.9);
+      --accent: #ff4d4d;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      width: 100%;
-      min-height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #ffffff; color: #111; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
     }
 
-    body { overflow-x: hidden; }
-    button { font: inherit; }
+    button, .clickable { cursor: pointer; font: inherit; }
 
-    .site {
-      min-height: 100vh;
-      background: var(--bg);
-    }
-
-    /* 字体放到画面正中央 */
-    .topbar {
+    /* ===== 首页（纯白） ===== */
+    .home-screen {
       position: fixed;
       inset: 0;
-      z-index: 50;
+      z-index: 10;
       display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    .brand-3d {
-      pointer-events: auto;
-      position: relative;
-      display: inline-block;
-      text-decoration: none;
-      text-transform: uppercase;
-      font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-      font-size: clamp(30px, 7vw, 110px);
-      font-weight: 900;
-      line-height: 0.9;
-      letter-spacing: 0.015em;
-      white-space: nowrap;
-      transform: perspective(960px) rotateX(0.8deg) rotateY(-3.5deg);
-      transform-origin: center center;
-      isolation: isolate;
-      opacity: 1;
-      transition:
-        transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-        filter 900ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .brand-face,
-    .brand-depth,
-    .brand-depth-soft {
-      display: block;
-      transition:
-        opacity 760ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-        filter 900ms cubic-bezier(0.22, 1, 0.36, 1),
-        color 760ms cubic-bezier(0.22, 1, 0.36, 1),
-        text-shadow 760ms cubic-bezier(0.22, 1, 0.36, 1),
-        -webkit-text-stroke-color 760ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .brand-face {
-      position: relative;
-      z-index: 3;
-      color: var(--bg);
-      -webkit-text-stroke: 1px rgba(0, 0, 0, 0);
-      text-shadow: none;
-      opacity: 0.06;
-      filter: blur(0.2px);
-    }
-
-    /* 仅保留一层浅灰色字体后阴影 */
-    .brand-depth {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      color: rgba(170, 170, 170, 0.45);
-      transform: translate(0px, 0px);
-      text-shadow: none;
-      opacity: 0;
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 3% 100%);
-    }
-
-    /* 第二层大阴影禁用 */
-    .brand-depth-soft {
-      display: none;
-    }
-
-    .brand-3d:hover,
-    .brand-3d:focus-visible {
-      transform: perspective(960px) rotateX(0.8deg) rotateY(-3.5deg) translateY(-1px);
-      filter: none;
-    }
-
-    .brand-3d:hover .brand-face,
-    .brand-3d:focus-visible .brand-face {
-      color: #fffefa;
-      -webkit-text-stroke: 1px var(--logo-stroke);
-      text-shadow: none;
-      opacity: 1;
-      filter: none;
-    }
-
-    .brand-3d:hover .brand-depth,
-    .brand-3d:focus-visible .brand-depth {
-      color: rgba(160, 160, 160, 0.55);
-      transform: translate(2px, 2px);
-      text-shadow: none;
-      opacity: 1;
-    }
-
-    main { min-height: 100vh; }
-
-    .home {
-      position: relative;
-      width: 100%;
-      min-height: 100vh;
-      background: var(--bg);
-      overflow: hidden;
-    }
-
-    .home.hidden, .page.hidden { display: none; }
-
-    .visual-stage {
-      position: relative;
-      width: 100%;
-      min-height: 100vh;
-      background: var(--bg);
-      isolation: isolate;
-    }
-
-    .asset-layer {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .artwork-slot {
-      position: absolute;
-      top: 16vh;
-      left: 7vw;
-      width: min(46vw, 720px);
-      display: none;
-    }
-
-    .logo-slot {
-      position: absolute;
-      right: 8vw;
-      bottom: 13vh;
-      width: min(24vw, 320px);
-      display: none;
-    }
-
-    .home-nav {
-      position: fixed;
-      left: clamp(20px, 5vw, 76px);
-      bottom: clamp(22px, 4vw, 54px);
-      z-index: 45;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-button {
-      min-height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0 17px;
-      background: rgba(249, 248, 245, 0.72);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      backdrop-filter: blur(14px);
-      transition:
-        transform 160ms ease,
-        border-color 160ms ease,
-        background 160ms ease,
-        color 160ms ease;
-    }
-
-    .nav-button:hover {
-      transform: translateY(-1px);
-      border-color: var(--btn-hover-border);
-      background: var(--btn-hover-bg);
-      color: var(--btn-hover-text);
-    }
-
-    .nav-button:focus-visible,
-    .brand-3d:focus-visible,
-    .enter-btn:focus-visible {
-      outline: 2px solid #ffffff;
-      outline-offset: 2px;
-    }
-
-    .page {
-      display: none;
-      min-height: 100vh;
-      padding: 140px clamp(20px, 5vw, 76px) 58px;
-      background: var(--bg);
-    }
-
-    .page.active { display: block; }
-
-    .page-shell {
-      width: min(100%, 1120px);
-      margin: 0 auto;
-      display: grid;
-      gap: 42px;
-    }
-
-    .section-title {
-      margin: 0;
-      color: var(--text);
-      font-size: clamp(44px, 7vw, 108px);
-      font-weight: 760;
-      line-height: 0.96;
-      letter-spacing: 0;
-    }
-
-    .section-copy {
-      max-width: 660px;
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(16px, 1.5vw, 20px);
-      line-height: 1.75;
-    }
-
-    .content-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1px;
-      border: 1px solid var(--line);
-      background: var(--line);
-    }
-
-    .content-tile {
-      min-height: 240px;
-      background: var(--bg);
-      padding: 22px;
-      display: flex;
-      align-items: flex-end;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .section-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    /* ===== 加载页动画（新增，不改首页原动效与颜色） ===== */
-    .intro-overlay{
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      display: grid;
-      place-items: center;
       background: #ffffff;
       overflow: hidden;
-      transition: opacity 460ms ease, visibility 460ms ease;
+      opacity: 1;
+      transition: opacity 0.4s ease;
     }
-    .intro-overlay.is-hidden{
+
+    .home-screen.hidden-home {
       opacity: 0;
-      visibility: hidden;
       pointer-events: none;
     }
 
-    .enter-btn{
+    .home-content {
       position: relative;
-      z-index: 2;
-      min-height: 48px;
-      padding: 0 28px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.24);
-      background: rgba(255,255,255,.92);
-      color: #111;
-      font-weight: 700;
-      letter-spacing: .08em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-relief {
+      font-family: Impact, Haettenschweiler, 'Arial Black', sans-serif;
+      font-size: clamp(32px, 8vw, 72px);
+      font-weight: 900;
       text-transform: uppercase;
-      cursor: pointer;
-      transition: all .18s ease;
-    }
-    .enter-btn:hover{
-      transform: translateY(-1px);
-      background: #ac0a0a;
-      color: #fff;
-      border-color: #ac0a0a;
-    }
-    .enter-btn.is-hide{
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
+      letter-spacing: 0.03em;
+      color: #ffffff;
+      text-shadow:
+        1px 1px 0 rgba(255, 250, 250, 0.802),
+        -1px -1px 0 rgba(196, 195, 193, 0.422);
+      user-select: none;
+      line-height: 1;
+      z-index: 10;
     }
 
-    .vortex-wrap{
+    .circle-nav {
       position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      pointer-events: none;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(320px, 70vw);
+      height: min(320px, 70vw);
+      z-index: 20;
     }
 
-    .vortex-layer{
-      position: absolute;
-      width: min(42vw, 540px);
-      aspect-ratio: 1 / 1;
+    .logo-full {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      transform-origin: 50% 50%;
+      display: block;
+    }
+
+    .nav-zone {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      background: transparent;
+      border: none;
+      z-index: 30;
+      transition: transform 0.2s;
+    }
+    .nav-zone:hover { transform: scale(1.1); }
+    .nav-zone:focus-visible { outline: 2px solid #c41e3a; outline-offset: 4px; }
+
+    .zone-top    { top: -26px; left: 50%; transform: translateX(-50%); }
+    .zone-bottom { bottom: -26px; left: 50%; transform: translateX(-50%); }
+    .zone-left   { left: -26px; top: 50%; transform: translateY(-50%); }
+    .zone-right  { right: -26px; top: 50%; transform: translateY(-50%); }
+
+    /* ===== 扩散过渡元素 ===== */
+    .expand-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, 
+        rgba(255, 60, 60, 0.95) 0%, 
+        rgba(180, 20, 20, 0.9) 30%, 
+        rgba(80, 0, 0, 0.85) 60%, 
+        rgba(20, 0, 0, 0.95) 100%);
+      transform: translate(-50%, -50%);
+      z-index: 25;
+      pointer-events: none;
+      opacity: 1;
+      transition: width 2s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                  height 2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                  box-shadow 2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                  opacity 0.8s ease;
+      box-shadow: 0 0 0 0 rgba(255, 30, 30, 0.9);
+    }
+
+    .expand-overlay.active {
+      width: 350vmax;
+      height: 350vmax;
+      box-shadow: 
+        0 0 80px 40px rgba(255, 40, 40, 0.7),
+        0 0 160px 80px rgba(200, 20, 20, 0.5),
+        0 0 300px 150px rgba(120, 0, 0, 0.4);
+    }
+
+    .expand-overlay.fade-out {
       opacity: 0;
-      will-change: transform, opacity, filter;
-      mix-blend-mode: multiply;
     }
 
-    .vortex-wrap.run .layer-1{ animation: spin1 1100ms linear forwards; opacity: .95; }
-    .vortex-wrap.run .layer-2{ animation: spin2 1100ms linear forwards; opacity: .42; }
-    .vortex-wrap.run .layer-3{ animation: spin3 1100ms linear forwards; opacity: .24; }
-
-    @keyframes spin1{
-      from{ transform: rotate(0deg) scale(1); filter: blur(0); }
-      to  { transform: rotate(1440deg) scale(1.02); filter: blur(.4px); }
-    }
-    @keyframes spin2{
-      from{ transform: rotate(0deg) scale(1.04); filter: blur(.1px); }
-      to  { transform: rotate(1560deg) scale(.98); filter: blur(1.2px); }
-    }
-    @keyframes spin3{
-      from{ transform: rotate(0deg) scale(1.1); filter: blur(.2px); }
-      to  { transform: rotate(1680deg) scale(.92); filter: blur(2px); }
+    .expand-overlay.reset {
+      transition: none !important;
     }
 
-    .vortex-wrap.suck .vortex-layer{
-      animation: suckIn 820ms cubic-bezier(.2,.9,.2,1) forwards;
-    }
-    @keyframes suckIn{
-      0%   { transform: scale(1); opacity: 1; filter: blur(0); }
-      65%  { transform: scale(.25); opacity: .95; filter: blur(1.5px); }
-      100% { transform: scale(.02); opacity: 0; filter: blur(4px); }
-    }
-
-    @media (hover: none) {
-      .brand-face {
-        color: #fffaea;
-        -webkit-text-stroke: 1px var(--logo-stroke);
-        text-shadow: none;
-        opacity: 1;
-        filter: none;
-      }
-
-      .brand-depth {
-        color: rgba(160, 160, 160, 0.55);
-        transform: translate(2px, 2px);
-        text-shadow: none;
-        opacity: 1;
-      }
-
-      .nav-button:hover {
-        transform: none;
-        border-color: var(--line);
-        background: rgba(255, 250, 234, 0.72);
-        color: var(--text);
-      }
+    /* ===== 流动背景（暗红） ===== */
+    .flow-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: 
+        radial-gradient(circle at 30% 40%, #5a0000 0%, transparent 60%),
+        radial-gradient(circle at 70% 60%, #2d0000 0%, transparent 60%),
+        radial-gradient(circle at 50% 80%, #3a0000 0%, transparent 60%);
+      background-size: 200% 200%;
+      animation: smokeFlow 18s ease infinite alternate;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .brand-3d,
-      .brand-face,
-      .brand-depth,
-      .nav-button,
-      .intro-overlay,
-      .enter-btn,
-      .vortex-layer {
-        transition: none !important;
-        animation: none !important;
-      }
+    body.show-flow .flow-bg {
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    @media (max-width: 780px) {
-      .brand-3d {
-        max-width: calc(100vw - 40px);
-        font-size: clamp(24px, 9vw, 48px);
-        letter-spacing: 0.015em;
-        transform: perspective(700px) rotateX(0.8deg) rotateY(-3deg);
-      }
-
-      .home-nav {
-        left: 20px;
-        right: 20px;
-        bottom: 22px;
-        justify-content: center;
-      }
-
-      .nav-button {
-        flex: 1;
-        max-width: 160px;
-      }
-
-      .page {
-        padding: 118px 20px 44px;
-      }
-
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .content-tile {
-        min-height: 180px;
-      }
-
-      .vortex-layer{
-        width: min(66vw, 360px);
-      }
+    @keyframes smokeFlow {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
     }
+
+    /* ===== 二级滚动页 ===== */
+    .feed-page {
+      position: relative;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    body.show-feed .feed-page {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .feed-section {
+      min-height: 100vh;
+      width: 100%;
+      padding: 50px 5vw 60px;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 15px 0 10px;
+      background: rgba(10, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      border-radius: 0 0 20px 20px;
+    }
+
+    .section-title-ch {
+      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
+      font-size: clamp(48px, 8vw, 80px);
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+      margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
+      font-size: 24px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-intro {
+      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.4);
+      border-left: 3px solid var(--accent);
+      outline: none;
+      min-height: 50px;
+      text-align: left;
+      border-radius: 4px;
+    }
+
+    .section-intro:empty::before {
+      content: "在此填写详细内容…";
+      color: rgba(255,255,255,0.5);
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .grid-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      cursor: pointer;
+      aspect-ratio: 3/4;
+      background: rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .grid-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 14px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+      pointer-events: none;
+    }
+
+    .grid-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #ff9999;
+      margin-bottom: 2px;
+    }
+
+    .grid-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* 返回按钮 */
+    .back-home-fixed {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    body.show-feed .back-home-fixed {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ===== 三级详情模态框 ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-content {
+      background: #1a1a1a;
+      color: #eee;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      border-radius: 16px;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #aaa;
+      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .modal-close:hover { background: #333; }
+
+    .modal-content h2 { font-size: 28px; margin-bottom: 12px; }
+    .modal-content p { color: #ccc; line-height: 1.7; }
+
+    .detail-image {
+      width: 100%;
+      border-radius: 12px;
+      margin: 16px 0;
+      background: #333;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+
+    .payment-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #444;
+    }
+    .payment-title { font-weight: 600; margin-bottom: 12px; }
+    .payment-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pay-btn {
+      padding: 10px 18px;
+      border: 1px solid #555;
+      border-radius: 8px;
+      background: #2a2a2a;
+      color: #ddd;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .pay-btn:hover { background: #444; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
-
 <body>
-  <!-- 加载页 -->
-  <div id="introOverlay" class="intro-overlay" aria-label="Loading intro">
-    <div id="vortexWrap" class="vortex-wrap" aria-hidden="true">
-      <!-- 把这里改成你的 logo 路径 -->
-      <img class="vortex-layer layer-1" src="./Pogo.png" alt="">
-      <img class="vortex-layer layer-2" src="./Pogo.png" alt="">
-      <img class="vortex-layer layer-3" src="./Pogo.png" alt="">
+
+  <!-- 首页 -->
+  <div id="homeScreen" class="home-screen">
+    <div class="home-content">
+      <div class="brand-relief">B4M</div>
+
+      <div class="circle-nav">
+        <!-- ★ 替换为你的完整 Logo PNG -->
+        <img class="logo-full" 
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='92' fill='none' stroke='%23c41e3a' stroke-width='2'/%3E%3Ccircle cx='100' cy='20' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='100' cy='180' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='20' cy='100' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='180' cy='100' r='12' fill='%23c41e3a'/%3E%3C/svg%3E"
+             alt="B4M Logo" />
+
+        <button class="nav-zone zone-top" data-route="gallery" aria-label="Gallery"></button>
+        <button class="nav-zone zone-bottom" data-route="product" aria-label="Product"></button>
+        <button class="nav-zone zone-left" data-route="media" aria-label="Media"></button>
+        <button class="nav-zone zone-right" data-route="about" aria-label="About"></button>
+      </div>
     </div>
-    <button id="enterBtn" class="enter-btn" type="button">ENTER</button>
   </div>
 
-  <div class="site">
-    <header class="topbar">
-      <a class="brand-3d" href="#home" aria-label="NEENOSLEEP home">
-        <span class="brand-depth" aria-hidden="true">NEENOSLEEP</span>
-        <span class="brand-face">NEENOSLEEP</span>
-      </a>
-    </header>
+  <!-- 扩散过渡层 -->
+  <div class="expand-overlay" id="expandOverlay"></div>
 
-    <main>
-      <section id="home" class="home">
-        <div class="visual-stage" aria-label="NEENOSLEEP visual stage">
-          <div class="asset-layer" aria-hidden="true">
-            <div class="artwork-slot"></div>
-            <div class="logo-slot"></div>
-          </div>
-        </div>
+  <!-- 流动背景（暗红） -->
+  <div class="flow-bg"></div>
 
-        <nav class="home-nav" aria-label="Primary">
-          <button class="nav-button" type="button" data-route="product">Product</button>
-          <button class="nav-button" type="button" data-route="media">Media</button>
-        </nav>
-      </section>
+  <!-- 返回按钮 -->
+  <button class="back-home-fixed" id="backHomeFixed">← Home</button>
 
-      <section id="product" class="page">
-        <div class="page-shell">
-          <h1 class="section-title">Product</h1>
-          <p class="section-copy">
-            Product content can live here while the homepage remains a full-screen visual entry.
-          </p>
+  <!-- 二级滚动页 -->
+  <div id="feedPage" class="feed-page">
+    <div id="feedContent"></div>
+  </div>
 
-          <div class="content-grid" aria-label="Product placeholders">
-            <div class="content-tile">Product image / detail</div>
-            <div class="content-tile">Material / specification</div>
-            <div class="content-tile">Campaign asset</div>
-          </div>
-
-          <div class="section-actions">
-            <button class="nav-button" type="button" data-route="home">Back Home</button>
-            <button class="nav-button" type="button" data-route="media">Media</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="media" class="page">
-        <div class="page-shell">
-          <h1 class="section-title">Media</h1>
-          <p class="section-copy">
-            Media, lookbook, campaign visuals, press material, or other secondary content can live here.
-          </p>
-
-          <div class="content-grid" aria-label="Media placeholders">
-            <div class="content-tile">Lookbook frame</div>
-            <div class="content-tile">Logo application</div>
-            <div class="content-tile">Motion / video</div>
-          </div>
-
-          <div class="section-actions">
-            <button class="nav-button" type="button" data-route="home">Back Home</button>
-            <button class="nav-button" type="button" data-route="product">Product</button>
-          </div>
-        </div>
-      </section>
-    </main>
+  <!-- 三级详情模态框 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modalContent"></div>
   </div>
 
   <script>
     (() => {
-      const routes = {
-        home: document.getElementById("home"),
-        product: document.getElementById("product"),
-        media: document.getElementById("media"),
+      const data = {
+        gallery: [
+          { img: 'https://placehold.co/600x800/222/eee?text=Gallery+1', title: 'Evening Glow', desc: 'Oil on canvas, 2025' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Gallery+2', title: 'Still Life', desc: 'Digital print' },
+          { img: 'https://placehold.co/600x900/222/eee?text=Gallery+3', title: 'Portrait Study', desc: 'Charcoal on paper' },
+          { img: 'https://placehold.co/600x700/222/eee?text=Gallery+4', title: 'Abstract Form', desc: 'Acrylic on wood' },
+          { img: 'https://placehold.co/600x500/222/eee?text=Gallery+5', title: 'City Lights', desc: 'Photography' },
+          { img: 'https://placehold.co/600x800/222/eee?text=Gallery+6', title: 'Silent Echo', desc: 'Mixed media' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Gallery+7', title: 'Morning Dew', desc: 'Watercolor' },
+          { img: 'https://placehold.co/600x900/222/eee?text=Gallery+8', title: 'Fragments', desc: 'Collage' },
+        ],
+        media: [
+          { img: 'https://placehold.co/600x400/222/eee?text=Media+1', title: 'Campaign Film', desc: 'Director\'s cut' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Media+2', title: 'Behind the Scenes', desc: 'Photo series' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Media+3', title: 'Lookbook Video', desc: 'Fashion film' },
+          { img: 'https://placehold.co/600x500/222/eee?text=Media+4', title: 'Soundscape', desc: 'Audio visual' },
+          { img: 'https://placehold.co/600x300/222/eee?text=Media+5', title: 'Interview', desc: 'Artist talk' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Media+6', title: 'Animation', desc: 'Short film' },
+        ],
+        product: [
+          { img: 'https://placehold.co/600x800/222/eee?text=Product+1', title: 'Signature Hoodie', desc: 'Limited edition', price: '¥890' },
+          { img: 'https://placehold.co/600x700/222/eee?text=Product+2', title: 'Ceramic Vessel', desc: 'Hand thrown', price: '¥1,200' },
+          { img: 'https://placehold.co/600x500/222/eee?text=Product+3', title: 'Art Print Set', desc: 'A3, 3 pieces', price: '¥450' },
+          { img: 'https://placehold.co/600x800/222/eee?text=Product+4', title: 'Linen Shirt', desc: 'Stone washed', price: '¥780' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Product+5', title: 'Enamel Pin', desc: 'Gold plating', price: '¥128' },
+          { img: 'https://placehold.co/600x700/222/eee?text=Product+6', title: 'Tote Bag', desc: 'Canvas', price: '¥320' },
+          { img: 'https://placehold.co/600x900/222/eee?text=Product+7', title: 'Candle Set', desc: 'Soy wax', price: '¥560' },
+        ],
+        about: [
+          { img: 'https://placehold.co/600x600/222/eee?text=About+1', title: 'Our Studio', desc: 'Shanghai based' },
+          { img: 'https://placehold.co/600x400/222/eee?text=About+2', title: 'The Team', desc: 'Creative collective' },
+          { img: 'https://placehold.co/600x600/222/eee?text=About+3', title: 'Process', desc: 'From sketch to final' },
+          { img: 'https://placehold.co/600x400/222/eee?text=About+4', title: 'Exhibitions', desc: '2023-2025' },
+          { img: 'https://placehold.co/600x500/222/eee?text=About+5', title: 'Press', desc: 'Featured in' },
+        ]
       };
 
-      function getRoute(route) {
-        return Object.prototype.hasOwnProperty.call(routes, route) ? route : "home";
-      }
+      const sectionsOrder = ['gallery', 'media', 'product', 'about'];
+      const elementNames = ['風', '火', '水', '土'];
+      const elementSubs = ['意識', '精神', '心靈', '肉體'];
 
-      function go(route, updateHash = true) {
-        const target = getRoute(route);
+      const body = document.body;
+      const homeScreen = document.getElementById('homeScreen');
+      const expandOverlay = document.getElementById('expandOverlay');
+      const feedContent = document.getElementById('feedContent');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContent = document.getElementById('modalContent');
 
-        Object.values(routes).forEach((section) => {
-          section.classList.remove("active");
-          section.classList.add("hidden");
+      let feedRendered = false;
+      let pendingTarget = null;
+
+      function renderFeed() {
+        if (feedRendered) return;
+        let html = '';
+        sectionsOrder.forEach((section, i) => {
+          const items = data[section];
+          html += `
+            <section class="feed-section" id="sec-${section}">
+              <div class="section-header">
+                <h2 class="section-title-ch">${elementNames[i]}</h2>
+                <div class="section-subtitle">${elementSubs[i]}</div>
+                <div class="section-intro" contenteditable="true" placeholder="在此填写详细内容…"></div>
+              </div>
+              <div class="media-grid">
+                ${items.map((item, idx) => `
+                  <div class="grid-item" data-section="${section}" data-index="${idx}">
+                    <img src="${item.img}" alt="${item.title}" loading="lazy" />
+                    <div class="grid-caption">
+                      <div class="grid-tag">${section}</div>
+                      <div class="grid-title">${item.title}</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+          `;
         });
+        feedContent.innerHTML = html;
+        feedRendered = true;
 
-        routes[target].classList.remove("hidden");
-
-        if (target !== "home") {
-          routes[target].classList.add("active");
-        }
-
-        const nextHash = "#" + target;
-        if (updateHash && window.location.hash !== nextHash) {
-          window.history.replaceState(null, "", nextHash);
-        }
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      document.querySelectorAll("[data-route]").forEach((button) => {
-        button.addEventListener("click", () => go(button.dataset.route));
-      });
-
-      window.addEventListener("hashchange", () => {
-        go(window.location.hash.replace("#", ""), false);
-      });
-
-      go(window.location.hash.replace("#", "") || "home", false);
-
-      /* ===== 加载页动画控制（新增） ===== */
-      const intro = document.getElementById("introOverlay");
-      const enterBtn = document.getElementById("enterBtn");
-      const vortex = document.getElementById("vortexWrap");
-
-      let started = false;
-
-      if (enterBtn && intro && vortex) {
-        enterBtn.addEventListener("click", () => {
-          if (started) return;
-          started = true;
-
-          enterBtn.classList.add("is-hide");
-          vortex.classList.add("run"); // 快速顺时针旋转
-
-          setTimeout(() => {
-            vortex.classList.add("suck"); // 吸入
-          }, 1100);
-
-          setTimeout(() => {
-            intro.classList.add("is-hidden"); // 露出原首页（原动效和颜色不改）
-          }, 1950);
+        document.querySelectorAll('.grid-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const sec = item.dataset.section;
+            const idx = parseInt(item.dataset.index);
+            openDetail(sec, idx);
+          });
         });
       }
+
+      function triggerExpand(targetSection) {
+        if (expandOverlay.classList.contains('active') || expandOverlay.classList.contains('fade-out')) return;
+        pendingTarget = targetSection;
+
+        expandOverlay.classList.remove('reset', 'fade-out');
+        expandOverlay.style.opacity = '1';   // 确保可见
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.add('active');
+      }
+
+      // 扩散动画完成 → 开始淡出红色叠加层
+      function onExpandEnd() {
+        // ★ 关键修复：移除内联 opacity，让 .fade-out 类生效
+        expandOverlay.style.opacity = '';
+        expandOverlay.classList.add('fade-out');
+        homeScreen.classList.add('hidden-home');
+        renderFeed();
+      }
+
+      // 红色叠加层淡出结束后 → 显示二级页面
+      function onFadeOutEnd() {
+        body.classList.add('show-flow', 'show-feed');
+        if (pendingTarget) {
+          const targetEl = document.getElementById(`sec-${pendingTarget}`);
+          if (targetEl) {
+            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+          }
+          pendingTarget = null;
+        }
+        // 重置叠加层状态（无动画）
+        expandOverlay.classList.add('reset');
+        expandOverlay.classList.remove('active', 'fade-out');
+        expandOverlay.style.opacity = '';
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.remove('reset');
+      }
+
+      // 监听过渡结束
+      expandOverlay.addEventListener('transitionend', (e) => {
+        if (e.propertyName === 'width' && expandOverlay.classList.contains('active') && !expandOverlay.classList.contains('fade-out')) {
+          onExpandEnd();
+        }
+        if (e.propertyName === 'opacity' && expandOverlay.classList.contains('fade-out')) {
+          onFadeOutEnd();
+        }
+      });
+
+      function goHome() {
+        body.classList.remove('show-flow', 'show-feed');
+        homeScreen.classList.remove('hidden-home');
+        modalOverlay.classList.remove('open');
+        window.scrollTo({ top: 0 });
+
+        // 立即重置叠加层
+        expandOverlay.classList.add('reset');
+        expandOverlay.classList.remove('active', 'fade-out');
+        expandOverlay.style.opacity = '';
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.remove('reset');
+      }
+
+      function openDetail(section, index) {
+        const items = data[section];
+        if (!items || !items[index]) return;
+        const item = items[index];
+
+        let paymentHTML = '';
+        if (section === 'product') {
+          paymentHTML = `
+            <div class="payment-section">
+              <div class="payment-title">购买选项</div>
+              <div class="payment-buttons">
+                <button class="pay-btn">🛒 Shopify</button>
+                <button class="pay-btn">💰 PayPal</button>
+                <button class="pay-btn">💳 信用卡</button>
+                <button class="pay-btn">🔵 支付宝</button>
+                <button class="pay-btn">🟢 微信支付</button>
+              </div>
+              <p style="margin-top:12px; font-size:13px; color: #aaa;">接口已预留，可集成实际支付网关。</p>
+            </div>
+          `;
+        }
+
+        modalContent.innerHTML = `
+          <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕</button>
+          <span class="grid-tag" style="color:#ff4d4d;">${section}</span>
+          <h2>${item.title}</h2>
+          <img class="detail-image" src="${item.img}" alt="${item.title}" />
+          <p>${item.desc}</p>
+          ${item.price ? `<p style="font-weight:700; margin-top:8px;">${item.price}</p>` : ''}
+          ${paymentHTML}
+        `;
+
+        modalOverlay.classList.add('open');
+      }
+
+      document.querySelectorAll('.nav-zone').forEach(zone => {
+        zone.addEventListener('click', () => triggerExpand(zone.dataset.route));
+      });
+
+      document.getElementById('backHomeFixed').addEventListener('click', goHome);
+
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) modalOverlay.classList.remove('open');
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+          modalOverlay.classList.remove('open');
+        }
+      });
+
+      goHome();
     })();
   </script>
 </body>
