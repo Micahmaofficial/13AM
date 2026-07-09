@@ -4,21 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>B4M</title>
+
+  <!-- 手写字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --text: #ffffff;
       --muted: rgba(255,255,255,0.9);
       --accent: #ff4d4d;
+      --card-border: #444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #ffffff; color: #111; }
     body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Times New Roman', Times, Georgia, serif;
       overflow-x: hidden;
     }
 
     button, .clickable { cursor: pointer; font: inherit; }
+
+    /* ===== 视频加载页 ===== */
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-screen video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
 
     /* ===== 首页（纯白） ===== */
     .home-screen {
@@ -94,6 +124,52 @@
     .zone-left   { left: -26px; top: 50%; transform: translateY(-50%); }
     .zone-right  { right: -26px; top: 50%; transform: translateY(-50%); }
 
+    /* ---------- 手写标签箭头 ---------- */
+    .nav-zone::after {
+      content: attr(data-label);
+      position: absolute;
+      font-family: 'Caveat', cursive;
+      font-size: 22px;
+      font-weight: 600;
+      color: #c41e3a;
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .zone-top::after {
+      content: "↑ Gallery";
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .zone-bottom::after {
+      content: "↓ Product";
+      bottom: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .zone-left::after {
+      content: "← Media";
+      left: -90px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .zone-right::after {
+      content: "→ About";
+      right: -90px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    @media (max-width: 768px) {
+      .zone-left::after { left: -80px; }
+      .zone-right::after { right: -80px; }
+    }
+
     /* ===== 扩散过渡元素 ===== */
     .expand-overlay {
       position: fixed;
@@ -127,13 +203,8 @@
         0 0 300px 150px rgba(120, 0, 0, 0.4);
     }
 
-    .expand-overlay.fade-out {
-      opacity: 0;
-    }
-
-    .expand-overlay.reset {
-      transition: none !important;
-    }
+    .expand-overlay.fade-out { opacity: 0; }
+    .expand-overlay.reset { transition: none !important; }
 
     /* ===== 流动背景（暗红） ===== */
     .flow-bg {
@@ -151,10 +222,7 @@
       transition: opacity 0.6s ease;
     }
 
-    body.show-flow .flow-bg {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    body.show-flow .flow-bg { opacity: 1; pointer-events: auto; }
 
     @keyframes smokeFlow {
       0% { background-position: 0% 0%; }
@@ -170,10 +238,7 @@
       transition: opacity 0.6s ease;
     }
 
-    body.show-feed .feed-page {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    body.show-feed .feed-page { opacity: 1; pointer-events: auto; }
 
     .feed-section {
       min-height: 100vh;
@@ -182,6 +247,7 @@
       background: transparent;
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
 
     .section-header {
@@ -194,27 +260,22 @@
       background: rgba(10, 0, 0, 0.55);
       backdrop-filter: blur(6px);
       border-radius: 0 0 20px 20px;
+      width: 100%;
     }
 
-    .section-title-ch {
-      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
+    .section-title-en {
+      font-family: 'Times New Roman', Times, serif;
       font-size: clamp(48px, 8vw, 80px);
       font-weight: 700;
       color: #ffffff;
       text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-      margin-bottom: 4px;
-    }
-
-    .section-subtitle {
-      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
-      font-size: 24px;
-      color: var(--accent);
       margin-bottom: 12px;
+      text-transform: capitalize;
     }
 
     .section-intro {
-      font-family: 'KaiTi', '楷体', 'Noto Serif TC', serif;
-      font-size: 16px;
+      font-family: 'Times New Roman', Times, Georgia, serif;
+      font-size: 18px;
       line-height: 1.8;
       color: var(--muted);
       max-width: 600px;
@@ -224,7 +285,7 @@
       border-left: 3px solid var(--accent);
       outline: none;
       min-height: 50px;
-      text-align: left;
+      text-align: center;
       border-radius: 4px;
     }
 
@@ -233,19 +294,34 @@
       color: rgba(255,255,255,0.5);
     }
 
-    .media-grid {
+    /* 统一三列网格 */
+    .feed-grid-3col {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1560px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .feed-grid-3col .grid-item {
+      aspect-ratio: 16 / 10;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+
+    .feed-grid-3col .grid-item .grid-title {
+      font-size: 22px;
+    }
+
+    .feed-grid-3col .grid-item .grid-tag {
+      font-size: 11px;
     }
 
     .grid-item {
       position: relative;
       overflow: hidden;
-      border-radius: 8px;
       cursor: pointer;
-      aspect-ratio: 3/4;
       background: rgba(0,0,0,0.3);
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -255,12 +331,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.6);
     }
 
-    .grid-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    .grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .grid-caption {
       position: absolute;
@@ -280,23 +351,33 @@
       color: #ff9999;
       margin-bottom: 2px;
     }
+    .grid-title { font-size: 16px; font-weight: 600; }
 
-    .grid-title {
-      font-size: 16px;
+    .more-btn {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 12px 32px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: #fff;
       font-weight: 600;
+      transition: background 0.2s;
+      text-align: center;
+      text-decoration: none;
     }
+    .more-btn:hover { background: rgba(255,255,255,0.25); }
 
-    /* 返回按钮 */
+    /* 固定返回按钮 */
     .back-home-fixed {
       position: fixed;
-      top: 20px;
-      left: 20px;
+      top: 10px; left: 10px;
       z-index: 100;
       background: rgba(0,0,0,0.7);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 8px;
-      padding: 8px 18px;
+      padding: 6px 16px;
       font-size: 14px;
       color: #fff;
       font-weight: 600;
@@ -306,111 +387,628 @@
       transition: opacity 0.6s ease;
     }
 
-    body.show-feed .back-home-fixed {
-      opacity: 1;
-      pointer-events: auto;
+    body.show-feed .back-home-fixed { opacity: 1; pointer-events: auto; }
+    body.third-page-open .back-home-fixed { opacity: 0; pointer-events: none; }
+
+    /* ===== 三级页面通用样式 ===== */
+    .third-page {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: #ffffff;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      color: #111;
     }
 
-    /* ===== 三级详情模态框 ===== */
-    .modal-overlay {
+    .third-page.active { display: flex; }
+
+    .third-page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 5vw;
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 2;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .third-page-header h2 {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    .third-back-btn {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #c41e3a;
+      font-weight: 600;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    /* Media 页面内容 */
+    .media-page-content {
+      padding: 30px 5vw 40px;
+      background: #f8f8f8;
+    }
+
+    /* VHS 区域 */
+    .vhs-section {
+      margin-bottom: 50px;
+    }
+    .vhs-section h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    /* 轮播容器 */
+    .vhs-carousel {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .vhs-track {
+      display: flex;
+      gap: 20px;
+      animation: scrollVHS 30s linear infinite;
+      width: max-content;
+    }
+
+    .vhs-carousel:hover .vhs-track {
+      animation-play-state: paused;
+    }
+
+    @keyframes scrollVHS {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 复古 VHS 磁带 */
+    .vhs-tape {
+      flex-shrink: 0;
+      width: 120px;
+      height: 220px;
+      background: #1a1a1a;
+      border-radius: 8px 8px 4px 4px;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      transition: transform 0.2s;
+      border: 2px solid #333;
+    }
+
+    .vhs-tape:hover {
+      transform: translateY(-8px);
+    }
+
+    .vhs-tape::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      height: 50px;
+      background: #111;
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px #444, 0 0 0 2px #222;
+    }
+
+    .vhs-tape::after {
+      content: '';
+      position: absolute;
+      bottom: 20px;
+      left: 15px;
+      right: 15px;
+      height: 20px;
+      background: #222;
+      border-radius: 10px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.8), 0 0 0 1px #555;
+    }
+
+    .tape-label {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      height: 40px;
+      background: #fff;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: #222;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    .tape-bottom {
+      position: absolute;
+      bottom: 8px;
+      color: #888;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    /* Unsplash 照片网格 */
+    .photo-section h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #222;
+    }
+    .photo-grid {
+      column-count: 3;
+      column-gap: 12px;
+    }
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .photo-item:hover {
+      transform: scale(1.02);
+    }
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .photo-item .photo-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      color: white;
+      padding: 20px 10px 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .photo-item:hover .photo-caption {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .photo-grid { column-count: 2; }
+    }
+
+    /* 电视机模态框 */
+    .tv-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 200;
+      z-index: 300;
+      background: rgba(0,0,0,0.95);
+      justify-content: center;
+      align-items: center;
+    }
+    .tv-modal.open { display: flex; }
+
+    .tv-set {
+      position: relative;
+      width: 700px;
+      max-width: 90vw;
+      aspect-ratio: 4 / 3;
+      background: #2a2a2a;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tv-screen {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .tv-screen canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .tv-ant {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 60px;
+      background: #555;
+      border-radius: 5px 5px 0 0;
+    }
+    .tv-ant::after {
+      content: '';
+      position: absolute;
+      top: -30px;
+      left: -20px;
+      width: 50px;
+      height: 10px;
+      background: #555;
+      border-radius: 10px;
+    }
+
+    .tv-close {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #c41e3a;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* ===== Gallery 三级页面 ===== */
+    #galleryPage {
+      background: 
+        radial-gradient(circle at 30% 40%, #4a0000 0%, transparent 60%),
+        radial-gradient(circle at 70% 60%, #2d0000 0%, transparent 60%),
+        #1a0000;
+      color: #fff;
+    }
+
+    #galleryPage .third-page-header {
+      background: rgba(10,0,0,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #galleryPage .third-page-header h2 { color: #fff; }
+    #galleryPage .third-back-btn { color: #ff4d4d; }
+
+    #galleryContent {
+      display: block;
+      padding: 20px 5vw 40px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0;
+    }
+
+    .gallery-grid .gallery-item {
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      background: rgba(0,0,0,0.3);
+      aspect-ratio: 3/4;
+    }
+
+    .gallery-grid .gallery-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    .gallery-grid .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-grid .gallery-item .item-title {
+      margin: 10px 0;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    .gallery-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .gallery-list .gallery-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      cursor: pointer;
+      padding: 12px;
+      transition: background 0.15s, transform 0.2s;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .gallery-list .gallery-item:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateX(4px);
+    }
+    .gallery-list .gallery-item img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .gallery-list .item-info { flex: 1; }
+    .gallery-list .item-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .gallery-list .item-desc {
+      font-size: 14px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .view-toggle { display: flex; gap: 8px; }
+    .toggle-btn {
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      font-size: 14px;
+      color: #ddd;
+      transition: 0.15s;
+    }
+    .toggle-btn.active { background: #fff; color: #111; border-color: #fff; }
+
+    /* ===== Gallery 预览模态框 ===== */
+    .gallery-preview-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 240;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .gallery-preview-modal.open { display: flex; }
+
+    .gallery-preview-content {
+      max-width: 90vw;
+      max-height: 80vh;
+      text-align: center;
+      border: 2px solid rgba(80, 10, 10, 0.7);
+      box-shadow: 0 0 40px rgba(50, 0, 0, 0.6);
+      border-radius: 20px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+
+    .gallery-preview-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .gallery-preview-title {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      margin: 16px 0 24px;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    .enter-gallery-btn {
+      background: #c41e3a;
+      color: #fff;
+      border: none;
+      padding: 12px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .enter-gallery-btn:hover {
+      background: #a01830;
+    }
+
+    .preview-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      border: none;
+      color: #fff;
+      font-size: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ===== 详情模态框 ===== */
+    .detail-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 250;
+      background: rgba(0,0,0,0.85);
       justify-content: center;
       align-items: center;
       padding: 20px;
     }
+    .detail-modal.open { display: flex; }
 
-    .modal-overlay.open { display: flex; }
-
-    .modal-content {
+    .detail-container {
+      display: flex;
       background: #1a1a1a;
       color: #eee;
-      max-width: 800px;
-      width: 100%;
-      max-height: 90vh;
+      width: 90vw;
+      max-width: 1100px;
+      max-height: 85vh;
+      height: auto;
       border-radius: 16px;
-      overflow-y: auto;
-      padding: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+
+    .detail-image-panel {
+      flex: 1;
       position: relative;
-      animation: modalIn 0.25s ease;
-    }
-
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 16px; right: 16px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #aaa;
-      width: 36px; height: 36px;
+      overflow: hidden;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      cursor: pointer;
     }
-    .modal-close:hover { background: #333; }
 
-    .modal-content h2 { font-size: 28px; margin-bottom: 12px; }
-    .modal-content p { color: #ccc; line-height: 1.7; }
+    .detail-image-panel.no-magnifier {
+      cursor: default;
+    }
 
-    .detail-image {
+    .detail-image-panel img {
       width: 100%;
-      border-radius: 12px;
-      margin: 16px 0;
-      background: #333;
-      aspect-ratio: 16/9;
-      object-fit: cover;
+      height: auto;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform 0.1s ease;
+      transform-origin: center center;
+    }
+
+    .magnifier-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .detail-info-panel {
+      width: 320px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: #111;
+      font-family: 'Times New Roman', Times, serif;
+      flex-shrink: 0;
+    }
+
+    .detail-info-panel .tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #ff4d4d;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .detail-info-panel h2 {
+      font-size: 28px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .detail-info-panel .desc {
+      color: #ccc;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .detail-info-panel .price {
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 16px;
     }
 
     .payment-section {
-      margin-top: 24px;
+      margin-top: auto;
       padding-top: 20px;
       border-top: 1px solid #444;
     }
     .payment-title { font-weight: 600; margin-bottom: 12px; }
     .payment-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
     .pay-btn {
-      padding: 10px 18px;
+      padding: 8px 14px;
       border: 1px solid #555;
       border-radius: 8px;
       background: #2a2a2a;
       color: #ddd;
       font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.15s;
+      font-size: 13px;
     }
     .pay-btn:hover { background: #444; }
 
-    .hidden { display: none !important; }
+    .detail-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: rgba(0,0,0,0.5);
+      border: none;
+      font-size: 24px;
+      color: white;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .feed-grid-3col { grid-template-columns: repeat(2, 1fr); }
+      .detail-container { flex-direction: column; }
+      .detail-info-panel { width: 100%; }
+    }
   </style>
 </head>
 <body>
+
+  <!-- 视频加载页（点击跳过） -->
+  <div class="loading-screen" id="loadingScreen">
+    <video id="loadingVideo" src="B4M-cut.mp4" autoplay muted playsinline></video>
+  </div>
 
   <!-- 首页 -->
   <div id="homeScreen" class="home-screen">
     <div class="home-content">
       <div class="brand-relief">B4M</div>
-
       <div class="circle-nav">
-        <!-- ★ 替换为你的完整 Logo PNG -->
-        <img class="logo-full" 
-             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='92' fill='none' stroke='%23c41e3a' stroke-width='2'/%3E%3Ccircle cx='100' cy='20' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='100' cy='180' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='20' cy='100' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='180' cy='100' r='12' fill='%23c41e3a'/%3E%3C/svg%3E"
-             alt="B4M Logo" />
-
+        <img class="logo-full" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='92' fill='none' stroke='%23c41e3a' stroke-width='2'/%3E%3Ccircle cx='100' cy='20' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='100' cy='180' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='20' cy='100' r='12' fill='%23c41e3a'/%3E%3Ccircle cx='180' cy='100' r='12' fill='%23c41e3a'/%3E%3C/svg%3E" alt="B4M Logo" />
         <button class="nav-zone zone-top" data-route="gallery" aria-label="Gallery"></button>
-        <button class="nav-zone zone-bottom" data-route="product" aria-label="Product"></button>
+        <button class="nav-zone zone-bottom" data-route="product" aria-label="Shop"></button>
         <button class="nav-zone zone-left" data-route="media" aria-label="Media"></button>
         <button class="nav-zone zone-right" data-route="about" aria-label="About"></button>
       </div>
@@ -420,10 +1018,10 @@
   <!-- 扩散过渡层 -->
   <div class="expand-overlay" id="expandOverlay"></div>
 
-  <!-- 流动背景（暗红） -->
+  <!-- 流动背景 -->
   <div class="flow-bg"></div>
 
-  <!-- 返回按钮 -->
+  <!-- 返回首页按钮 -->
   <button class="back-home-fixed" id="backHomeFixed">← Home</button>
 
   <!-- 二级滚动页 -->
@@ -431,40 +1029,128 @@
     <div id="feedContent"></div>
   </div>
 
-  <!-- 三级详情模态框 -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-content" id="modalContent"></div>
+  <!-- Gallery 三级页面 -->
+  <div class="third-page" id="galleryPage">
+    <div class="third-page-header">
+      <button class="third-back-btn" data-close="galleryPage">← Back</button>
+      <h2>Gallery</h2>
+      <div class="view-toggle">
+        <button class="toggle-btn active" data-view="grid">Grid</button>
+        <button class="toggle-btn" data-view="list">List</button>
+      </div>
+    </div>
+    <div id="galleryContent"></div>
+  </div>
+
+  <!-- Media 三级页面 -->
+  <div class="third-page" id="mediaPage">
+    <div class="third-page-header">
+      <button class="third-back-btn" data-close="mediaPage">← Back</button>
+      <h2>Media</h2>
+    </div>
+    <div class="media-page-content" id="mediaContent"></div>
+  </div>
+
+  <!-- Shop 三级页面（空白） -->
+  <div class="third-page" id="shopPage">
+    <div class="third-page-header">
+      <button class="third-back-btn" data-close="shopPage">← Back</button>
+      <h2>Shop</h2>
+    </div>
+    <div class="third-page-content">
+      <p>Shop content will be added here.</p>
+    </div>
+  </div>
+
+  <!-- About 三级页面（空白） -->
+  <div class="third-page" id="aboutPage">
+    <div class="third-page-header">
+      <button class="third-back-btn" data-close="aboutPage">← Back</button>
+      <h2>About</h2>
+    </div>
+    <div class="third-page-content">
+      <p>About content will be added here.</p>
+    </div>
+  </div>
+
+  <!-- Gallery 预览模态框 -->
+  <div class="gallery-preview-modal" id="galleryPreviewModal">
+    <button class="preview-close-btn" id="galleryPreviewClose">✕</button>
+    <div class="gallery-preview-content">
+      <img id="galleryPreviewImage" src="" alt="" />
+      <div class="gallery-preview-title" id="galleryPreviewTitle"></div>
+      <button class="enter-gallery-btn" id="enterGalleryBtn">Enter Gallery →</button>
+    </div>
+  </div>
+
+  <!-- 电视机模态框 -->
+  <div class="tv-modal" id="tvModal">
+    <div class="tv-set">
+      <button class="tv-close" id="tvClose">✕</button>
+      <div class="tv-ant"></div>
+      <div class="tv-screen">
+        <canvas id="snowCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详情模态框 -->
+  <div class="detail-modal" id="detailModal">
+    <div class="detail-container" id="detailContainer">
+      <button class="detail-close" id="detailClose">✕</button>
+      <div class="detail-image-panel" id="detailImagePanel">
+        <img id="detailImage" src="" alt="" />
+        <span class="magnifier-hint" id="magnifierHint">🖱️ 移动鼠标查看细节</span>
+      </div>
+      <div class="detail-info-panel" id="detailInfoPanel"></div>
+    </div>
   </div>
 
   <script>
     (() => {
+      // ==================== 视频加载（点击跳过） ====================
+      const loadingScreen = document.getElementById('loadingScreen');
+      const loadingVideo = document.getElementById('loadingVideo');
+      loadingVideo.addEventListener('ended', () => {
+        loadingScreen.classList.add('fade-out');
+        loadingScreen.addEventListener('transitionend', () => loadingScreen.style.display = 'none', { once: true });
+      });
+      loadingVideo.addEventListener('error', () => loadingScreen.style.display = 'none');
+      loadingVideo.play().catch(() => loadingScreen.style.display = 'none');
+      loadingScreen.addEventListener('click', () => {
+        loadingVideo.pause();
+        loadingScreen.classList.add('fade-out');
+        loadingScreen.addEventListener('transitionend', () => loadingScreen.style.display = 'none', { once: true });
+      });
+
+      // ==================== 数据 ====================
       const data = {
         gallery: [
-          { img: 'https://placehold.co/600x800/222/eee?text=Gallery+1', title: 'Evening Glow', desc: 'Oil on canvas, 2025' },
-          { img: 'https://placehold.co/600x600/222/eee?text=Gallery+2', title: 'Still Life', desc: 'Digital print' },
-          { img: 'https://placehold.co/600x900/222/eee?text=Gallery+3', title: 'Portrait Study', desc: 'Charcoal on paper' },
-          { img: 'https://placehold.co/600x700/222/eee?text=Gallery+4', title: 'Abstract Form', desc: 'Acrylic on wood' },
-          { img: 'https://placehold.co/600x500/222/eee?text=Gallery+5', title: 'City Lights', desc: 'Photography' },
-          { img: 'https://placehold.co/600x800/222/eee?text=Gallery+6', title: 'Silent Echo', desc: 'Mixed media' },
-          { img: 'https://placehold.co/600x600/222/eee?text=Gallery+7', title: 'Morning Dew', desc: 'Watercolor' },
-          { img: 'https://placehold.co/600x900/222/eee?text=Gallery+8', title: 'Fragments', desc: 'Collage' },
+          { img: 'gallery/wind.jpg', title: 'WIND', desc: 'Oil on canvas, 2025' },
+          { img: 'gallery/Fire.jpg', title: 'FIRE', desc: 'Digital print' },
+          { img: 'gallery/water.jpg', title: 'WATER', desc: 'Charcoal on paper' },
+          { img: 'gallery/earth.jpg', title: 'EARTH', desc: 'Acrylic on wood' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Gallery+5', title: 'City Lights', desc: 'Photography' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Gallery+6', title: 'Silent Echo', desc: 'Mixed media' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Gallery+7', title: 'Morning Dew', desc: 'Watercolor' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Gallery+8', title: 'Fragments', desc: 'Collage' },
         ],
         media: [
-          { img: 'https://placehold.co/600x400/222/eee?text=Media+1', title: 'Campaign Film', desc: 'Director\'s cut' },
-          { img: 'https://placehold.co/600x600/222/eee?text=Media+2', title: 'Behind the Scenes', desc: 'Photo series' },
-          { img: 'https://placehold.co/600x400/222/eee?text=Media+3', title: 'Lookbook Video', desc: 'Fashion film' },
-          { img: 'https://placehold.co/600x500/222/eee?text=Media+4', title: 'Soundscape', desc: 'Audio visual' },
-          { img: 'https://placehold.co/600x300/222/eee?text=Media+5', title: 'Interview', desc: 'Artist talk' },
-          { img: 'https://placehold.co/600x400/222/eee?text=Media+6', title: 'Animation', desc: 'Short film' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Campaign', title: 'Campaign', desc: 'Director\'s cut', type: 'video' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Behind', title: 'Behind Scenes', desc: 'Photo series', type: 'video' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Lookbook', title: 'Lookbook', desc: 'Fashion film', type: 'video' },
+          { img: 'https://placehold.co/600x500/222/eee?text=Soundscape', title: 'Soundscape', desc: 'Audio visual', type: 'photo' },
+          { img: 'https://placehold.co/600x300/222/eee?text=Interview', title: 'Interview', desc: 'Artist talk', type: 'photo' },
+          { img: 'https://placehold.co/600x400/222/eee?text=Animation', title: 'Animation', desc: 'Short film', type: 'photo' },
         ],
         product: [
-          { img: 'https://placehold.co/600x800/222/eee?text=Product+1', title: 'Signature Hoodie', desc: 'Limited edition', price: '¥890' },
-          { img: 'https://placehold.co/600x700/222/eee?text=Product+2', title: 'Ceramic Vessel', desc: 'Hand thrown', price: '¥1,200' },
-          { img: 'https://placehold.co/600x500/222/eee?text=Product+3', title: 'Art Print Set', desc: 'A3, 3 pieces', price: '¥450' },
-          { img: 'https://placehold.co/600x800/222/eee?text=Product+4', title: 'Linen Shirt', desc: 'Stone washed', price: '¥780' },
-          { img: 'https://placehold.co/600x600/222/eee?text=Product+5', title: 'Enamel Pin', desc: 'Gold plating', price: '¥128' },
-          { img: 'https://placehold.co/600x700/222/eee?text=Product+6', title: 'Tote Bag', desc: 'Canvas', price: '¥320' },
-          { img: 'https://placehold.co/600x900/222/eee?text=Product+7', title: 'Candle Set', desc: 'Soy wax', price: '¥560' },
+          { img: 'https://placehold.co/600x800/222/eee?text=Shop+1', title: 'Signature Hoodie', desc: 'Limited edition', price: '¥890' },
+          { img: 'https://placehold.co/600x700/222/eee?text=Shop+2', title: 'Ceramic Vessel', desc: 'Hand thrown', price: '¥1,200' },
+          { img: 'https://placehold.co/600x500/222/eee?text=Shop+3', title: 'Art Print Set', desc: 'A3, 3 pieces', price: '¥450' },
+          { img: 'https://placehold.co/600x800/222/eee?text=Shop+4', title: 'Linen Shirt', desc: 'Stone washed', price: '¥780' },
+          { img: 'https://placehold.co/600x600/222/eee?text=Shop+5', title: 'Enamel Pin', desc: 'Gold plating', price: '¥128' },
+          { img: 'https://placehold.co/600x700/222/eee?text=Shop+6', title: 'Tote Bag', desc: 'Canvas', price: '¥320' },
+          { img: 'https://placehold.co/600x900/222/eee?text=Shop+7', title: 'Candle Set', desc: 'Soy wax', price: '¥560' },
         ],
         about: [
           { img: 'https://placehold.co/600x600/222/eee?text=About+1', title: 'Our Studio', desc: 'Shanghai based' },
@@ -475,34 +1161,265 @@
         ]
       };
 
+      const sectionTitles = { gallery: 'Gallery', media: 'Media', product: 'Shop', about: 'About' };
       const sectionsOrder = ['gallery', 'media', 'product', 'about'];
-      const elementNames = ['風', '火', '水', '土'];
-      const elementSubs = ['意識', '精神', '心靈', '肉體'];
 
       const body = document.body;
       const homeScreen = document.getElementById('homeScreen');
       const expandOverlay = document.getElementById('expandOverlay');
       const feedContent = document.getElementById('feedContent');
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalContent = document.getElementById('modalContent');
+      const galleryContent = document.getElementById('galleryContent');
+      const mediaContent = document.getElementById('mediaContent');
+      const detailModal = document.getElementById('detailModal');
+      const detailImage = document.getElementById('detailImage');
+      const detailInfoPanel = document.getElementById('detailInfoPanel');
+      const detailImagePanel = document.getElementById('detailImagePanel');
+      const magnifierHint = document.getElementById('magnifierHint');
+
+      const galleryPreviewModal = document.getElementById('galleryPreviewModal');
+      const galleryPreviewImage = document.getElementById('galleryPreviewImage');
+      const galleryPreviewTitle = document.getElementById('galleryPreviewTitle');
+      const enterGalleryBtn = document.getElementById('enterGalleryBtn');
+      const galleryPreviewClose = document.getElementById('galleryPreviewClose');
+
+      const tvModal = document.getElementById('tvModal');
+      const tvClose = document.getElementById('tvClose');
+      const snowCanvas = document.getElementById('snowCanvas');
+      const ctx = snowCanvas.getContext('2d');
 
       let feedRendered = false;
       let pendingTarget = null;
+      let currentGalleryView = 'grid';
+      let magnifierEnabled = false;
+      let snowAnimationId = null;
 
+      const thirdPages = {
+        gallery: document.getElementById('galleryPage'),
+        media: document.getElementById('mediaPage'),
+        product: document.getElementById('shopPage'),
+        about: document.getElementById('aboutPage')
+      };
+
+      function openThirdPage(section) {
+        const page = thirdPages[section];
+        if (!page) return;
+        page.classList.add('active');
+        body.classList.add('third-page-open');
+        if (section === 'gallery') {
+          currentGalleryView = 'grid';
+          updateToggleButtons();
+          renderGalleryItems();
+        } else if (section === 'media') {
+          renderMediaPage();
+        }
+      }
+
+      function closeThirdPage(section) {
+        const page = thirdPages[section];
+        if (!page) return;
+        page.classList.remove('active');
+        body.classList.remove('third-page-open');
+      }
+
+      document.querySelectorAll('.third-back-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.close;
+          if (targetId) {
+            const section = Object.keys(thirdPages).find(key => thirdPages[key].id === targetId);
+            if (section) closeThirdPage(section);
+          }
+        });
+      });
+
+      // ---------- 雪花屏动画 ----------
+      function startSnow() {
+        const canvas = snowCanvas;
+        const w = canvas.width = canvas.parentElement.clientWidth;
+        const h = canvas.height = canvas.parentElement.clientHeight;
+        const ctx = canvas.getContext('2d');
+
+        function drawSnow() {
+          const imageData = ctx.createImageData(w, h);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const noise = Math.random() * 255;
+            data[i] = noise;     // R
+            data[i+1] = noise;   // G
+            data[i+2] = noise;   // B
+            data[i+3] = 255;     // Alpha
+          }
+          ctx.putImageData(imageData, 0, 0);
+          snowAnimationId = requestAnimationFrame(drawSnow);
+        }
+        drawSnow();
+      }
+
+      function stopSnow() {
+        if (snowAnimationId) {
+          cancelAnimationFrame(snowAnimationId);
+          snowAnimationId = null;
+        }
+      }
+
+      function openTV() {
+        tvModal.classList.add('open');
+        startSnow();
+      }
+
+      function closeTV() {
+        tvModal.classList.remove('open');
+        stopSnow();
+      }
+
+      tvClose.addEventListener('click', closeTV);
+      tvModal.addEventListener('click', (e) => {
+        if (e.target === tvModal) closeTV();
+      });
+
+      // ---------- Media 页面渲染 ----------
+      function renderMediaPage() {
+        const videoTemplates = data.media.filter(item => item.type === 'video');
+        const photos = data.media.filter(item => item.type === 'photo');
+
+        // 生成12个VHS项（复制模板并添加编号）
+        let vhsItems = [];
+        for (let i = 0; i < 12; i++) {
+          const template = videoTemplates[i % videoTemplates.length];
+          vhsItems.push({
+            ...template,
+            title: template.title + ' #' + (i + 1)
+          });
+        }
+
+        // 轮播需要两组相同内容（实现无缝循环）
+        const duplicatedVHS = [...vhsItems, ...vhsItems];
+
+        let html = '';
+        if (vhsItems.length) {
+          html += `
+            <div class="vhs-section">
+              <h3>Video</h3>
+              <div class="vhs-carousel">
+                <div class="vhs-track">
+                  ${duplicatedVHS.map((item, idx) => `
+                    <div class="vhs-tape" data-video-src="${item.videoSrc || ''}" data-title="${item.title}">
+                      <div class="tape-label">${item.title}</div>
+                      <div class="tape-bottom">VHS</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        if (photos.length) {
+          html += `
+            <div class="photo-section">
+              <h3>Photos</h3>
+              <div class="photo-grid">
+                ${photos.map(item => `
+                  <div class="photo-item">
+                    <img src="${item.img}" alt="${item.title}" loading="lazy" />
+                    <div class="photo-caption">${item.title}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        mediaContent.innerHTML = html;
+
+        // 绑定 VHS 点击 → 打开电视机雪花屏
+        document.querySelectorAll('.vhs-tape').forEach(tape => {
+          tape.addEventListener('click', () => {
+            openTV();
+          });
+        });
+
+        // 照片点击预览
+        document.querySelectorAll('.photo-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const imgSrc = item.querySelector('img').src;
+            const title = item.querySelector('.photo-caption').textContent;
+            detailImage.src = imgSrc;
+            detailImage.alt = title;
+            detailInfoPanel.innerHTML = `<div class="tag">Photo</div><h2>${title}</h2>`;
+            disableMagnifier();
+            detailModal.classList.add('open');
+          });
+        });
+      }
+
+      // ---------- Gallery 相关 ----------
+      function updateToggleButtons() {
+        document.querySelectorAll('#galleryPage .toggle-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.view === currentGalleryView);
+        });
+      }
+
+      function renderGalleryItems() {
+        const items = data.gallery;
+        let containerClass = currentGalleryView === 'grid' ? 'gallery-grid' : 'gallery-list';
+        let html = `<div class="${containerClass}">`;
+        items.forEach((item, idx) => {
+          html += `
+            <div class="gallery-item" data-index="${idx}">
+              <img src="${item.img}" alt="${item.title}" loading="lazy" />
+              <div class="item-info">
+                <div class="item-title">${item.title}</div>
+                ${currentGalleryView === 'list' ? `<div class="item-desc">${item.desc}</div>` : ''}
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        galleryContent.innerHTML = html;
+        document.querySelectorAll('#galleryContent .gallery-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const idx = parseInt(item.dataset.index);
+            openDetailModal('gallery', idx);
+          });
+        });
+      }
+
+      function openGalleryPreview(index) {
+        const items = data.gallery;
+        const item = items[index];
+        galleryPreviewImage.src = item.img;
+        galleryPreviewTitle.textContent = item.title;
+        galleryPreviewModal.classList.add('open');
+        enterGalleryBtn.onclick = () => {
+          closeGalleryPreview();
+          openThirdPage('gallery');
+        };
+      }
+
+      function closeGalleryPreview() {
+        galleryPreviewModal.classList.remove('open');
+      }
+
+      galleryPreviewClose.addEventListener('click', closeGalleryPreview);
+      galleryPreviewModal.addEventListener('click', (e) => {
+        if (e.target === galleryPreviewModal) closeGalleryPreview();
+      });
+
+      // 二级页面
       function renderFeed() {
         if (feedRendered) return;
         let html = '';
-        sectionsOrder.forEach((section, i) => {
+        sectionsOrder.forEach((section) => {
           const items = data[section];
+          const showItems = items.slice(0, 6);
           html += `
             <section class="feed-section" id="sec-${section}">
               <div class="section-header">
-                <h2 class="section-title-ch">${elementNames[i]}</h2>
-                <div class="section-subtitle">${elementSubs[i]}</div>
+                <h2 class="section-title-en">${sectionTitles[section]}</h2>
                 <div class="section-intro" contenteditable="true" placeholder="在此填写详细内容…"></div>
               </div>
-              <div class="media-grid">
-                ${items.map((item, idx) => `
+              <div class="feed-grid-3col">
+                ${showItems.map((item, idx) => `
                   <div class="grid-item" data-section="${section}" data-index="${idx}">
                     <img src="${item.img}" alt="${item.title}" loading="lazy" />
                     <div class="grid-caption">
@@ -512,6 +1429,7 @@
                   </div>
                 `).join('')}
               </div>
+              <button class="more-btn" data-more="${section}">More →</button>
             </section>
           `;
         });
@@ -522,76 +1440,68 @@
           item.addEventListener('click', () => {
             const sec = item.dataset.section;
             const idx = parseInt(item.dataset.index);
-            openDetail(sec, idx);
+            if (sec === 'gallery') {
+              openGalleryPreview(idx);
+            } else if (sec === 'media') {
+              openThirdPage('media');
+            } else {
+              openDetailModal(sec, idx);
+            }
+          });
+        });
+
+        document.querySelectorAll('.more-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const section = btn.dataset.more;
+            openThirdPage(section);
           });
         });
       }
 
-      function triggerExpand(targetSection) {
-        if (expandOverlay.classList.contains('active') || expandOverlay.classList.contains('fade-out')) return;
-        pendingTarget = targetSection;
-
-        expandOverlay.classList.remove('reset', 'fade-out');
-        expandOverlay.style.opacity = '1';   // 确保可见
-        void expandOverlay.offsetWidth;
-        expandOverlay.classList.add('active');
+      // 放大镜
+      function enableMagnifier() {
+        detailImagePanel.classList.remove('no-magnifier');
+        magnifierHint.style.display = '';
+        detailImagePanel.addEventListener('mousemove', magnifierMove);
+        detailImagePanel.addEventListener('mouseleave', magnifierLeave);
+        magnifierEnabled = true;
       }
 
-      // 扩散动画完成 → 开始淡出红色叠加层
-      function onExpandEnd() {
-        // ★ 关键修复：移除内联 opacity，让 .fade-out 类生效
-        expandOverlay.style.opacity = '';
-        expandOverlay.classList.add('fade-out');
-        homeScreen.classList.add('hidden-home');
-        renderFeed();
+      function disableMagnifier() {
+        detailImagePanel.classList.add('no-magnifier');
+        magnifierHint.style.display = 'none';
+        detailImagePanel.removeEventListener('mousemove', magnifierMove);
+        detailImagePanel.removeEventListener('mouseleave', magnifierLeave);
+        magnifierEnabled = false;
       }
 
-      // 红色叠加层淡出结束后 → 显示二级页面
-      function onFadeOutEnd() {
-        body.classList.add('show-flow', 'show-feed');
-        if (pendingTarget) {
-          const targetEl = document.getElementById(`sec-${pendingTarget}`);
-          if (targetEl) {
-            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-          }
-          pendingTarget = null;
-        }
-        // 重置叠加层状态（无动画）
-        expandOverlay.classList.add('reset');
-        expandOverlay.classList.remove('active', 'fade-out');
-        expandOverlay.style.opacity = '';
-        void expandOverlay.offsetWidth;
-        expandOverlay.classList.remove('reset');
+      function magnifierMove(e) {
+        const rect = detailImagePanel.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        const scale = 2;
+        const offsetX = (0.5 - x) * (scale - 1) * 100;
+        const offsetY = (0.5 - y) * (scale - 1) * 100;
+        detailImage.style.transform = `scale(${scale}) translate(${offsetX}%, ${offsetY}%)`;
       }
 
-      // 监听过渡结束
-      expandOverlay.addEventListener('transitionend', (e) => {
-        if (e.propertyName === 'width' && expandOverlay.classList.contains('active') && !expandOverlay.classList.contains('fade-out')) {
-          onExpandEnd();
-        }
-        if (e.propertyName === 'opacity' && expandOverlay.classList.contains('fade-out')) {
-          onFadeOutEnd();
-        }
-      });
-
-      function goHome() {
-        body.classList.remove('show-flow', 'show-feed');
-        homeScreen.classList.remove('hidden-home');
-        modalOverlay.classList.remove('open');
-        window.scrollTo({ top: 0 });
-
-        // 立即重置叠加层
-        expandOverlay.classList.add('reset');
-        expandOverlay.classList.remove('active', 'fade-out');
-        expandOverlay.style.opacity = '';
-        void expandOverlay.offsetWidth;
-        expandOverlay.classList.remove('reset');
+      function magnifierLeave() {
+        detailImage.style.transform = '';
       }
 
-      function openDetail(section, index) {
+      function openDetailModal(section, index) {
         const items = data[section];
-        if (!items || !items[index]) return;
         const item = items[index];
+        detailImage.src = item.img;
+        detailImage.alt = item.title;
+
+        if (section === 'gallery') {
+          enableMagnifier();
+        } else {
+          disableMagnifier();
+        }
+
+        detailImagePanel.style.aspectRatio = '';
 
         let paymentHTML = '';
         if (section === 'product') {
@@ -610,17 +1520,83 @@
           `;
         }
 
-        modalContent.innerHTML = `
-          <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">✕</button>
-          <span class="grid-tag" style="color:#ff4d4d;">${section}</span>
+        detailInfoPanel.innerHTML = `
+          <div class="tag">${section}</div>
           <h2>${item.title}</h2>
-          <img class="detail-image" src="${item.img}" alt="${item.title}" />
-          <p>${item.desc}</p>
-          ${item.price ? `<p style="font-weight:700; margin-top:8px;">${item.price}</p>` : ''}
+          <div class="desc">${item.desc}</div>
+          ${item.price ? `<div class="price">${item.price}</div>` : ''}
           ${paymentHTML}
         `;
 
-        modalOverlay.classList.add('open');
+        detailModal.classList.add('open');
+        detailImage.style.transform = '';
+      }
+
+      function closeDetailModal() {
+        detailModal.classList.remove('open');
+        disableMagnifier();
+      }
+
+      document.getElementById('detailClose').addEventListener('click', closeDetailModal);
+      detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) closeDetailModal();
+      });
+
+      disableMagnifier();
+
+      // 扩散过渡
+      function triggerExpand(targetSection) {
+        if (expandOverlay.classList.contains('active') || expandOverlay.classList.contains('fade-out')) return;
+        pendingTarget = targetSection;
+        expandOverlay.classList.remove('reset', 'fade-out');
+        expandOverlay.style.opacity = '1';
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.add('active');
+      }
+
+      function onExpandEnd() {
+        expandOverlay.style.opacity = '';
+        expandOverlay.classList.add('fade-out');
+        homeScreen.classList.add('hidden-home');
+        renderFeed();
+      }
+
+      function onFadeOutEnd() {
+        body.classList.add('show-flow', 'show-feed');
+        if (pendingTarget) {
+          const targetEl = document.getElementById(`sec-${pendingTarget}`);
+          if (targetEl) setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+          pendingTarget = null;
+        }
+        expandOverlay.classList.add('reset');
+        expandOverlay.classList.remove('active', 'fade-out');
+        expandOverlay.style.opacity = '';
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.remove('reset');
+      }
+
+      expandOverlay.addEventListener('transitionend', (e) => {
+        if (e.propertyName === 'width' && expandOverlay.classList.contains('active') && !expandOverlay.classList.contains('fade-out')) {
+          onExpandEnd();
+        }
+        if (e.propertyName === 'opacity' && expandOverlay.classList.contains('fade-out')) {
+          onFadeOutEnd();
+        }
+      });
+
+      function goHome() {
+        body.classList.remove('show-flow', 'show-feed', 'third-page-open');
+        homeScreen.classList.remove('hidden-home');
+        closeDetailModal();
+        closeGalleryPreview();
+        closeTV();
+        Object.values(thirdPages).forEach(p => p.classList.remove('active'));
+        window.scrollTo({ top: 0 });
+        expandOverlay.classList.add('reset');
+        expandOverlay.classList.remove('active', 'fade-out');
+        expandOverlay.style.opacity = '';
+        void expandOverlay.offsetWidth;
+        expandOverlay.classList.remove('reset');
       }
 
       document.querySelectorAll('.nav-zone').forEach(zone => {
@@ -629,16 +1605,20 @@
 
       document.getElementById('backHomeFixed').addEventListener('click', goHome);
 
-      modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) modalOverlay.classList.remove('open');
-      });
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
-          modalOverlay.classList.remove('open');
+        if (e.key === 'Escape') {
+          if (galleryPreviewModal.classList.contains('open')) closeGalleryPreview();
+          else if (detailModal.classList.contains('open')) closeDetailModal();
+          else if (tvModal.classList.contains('open')) closeTV();
+          else {
+            const openedPage = Object.values(thirdPages).find(p => p.classList.contains('active'));
+            if (openedPage) {
+              const section = Object.keys(thirdPages).find(key => thirdPages[key] === openedPage);
+              if (section) closeThirdPage(section);
+            }
+          }
         }
       });
-
-      goHome();
     })();
   </script>
 </body>
